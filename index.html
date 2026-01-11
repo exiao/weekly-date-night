@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DateNight — Every week, just for you two</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-cream: #FFF8F0;
+            --color-blush: #FFE4E1;
+            --color-rose: #E8B4B8;
+            --color-wine: #722F37;
+            --color-deep: #2C1810;
+            --font-display: 'Cormorant Garamond', Georgia, serif;
+            --font-body: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--color-cream);
+            background: var(--color-deep);
+        }
+
+        /* Video Background */
+        .video-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                135deg,
+                rgba(44, 24, 16, 0.85) 0%,
+                rgba(114, 47, 55, 0.7) 50%,
+                rgba(44, 24, 16, 0.8) 100%
+            );
+        }
+
+        /* Main Content */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        /* Logo */
+        .logo {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 300;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            margin-bottom: 4rem;
+            opacity: 0;
+            animation: fadeUp 1s ease-out 0.2s forwards;
+        }
+
+        .logo .heart {
+            color: var(--color-rose);
+            margin-right: 0.5rem;
+        }
+
+        /* Headlines */
+        .headline {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 300;
+            font-style: italic;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            animation: fadeUp 1s ease-out 0.4s forwards;
+        }
+
+        .subheadline {
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            font-weight: 300;
+            line-height: 1.7;
+            max-width: 460px;
+            opacity: 0.85;
+            margin-bottom: 3.5rem;
+            opacity: 0;
+            animation: fadeUp 1s ease-out 0.6s forwards;
+        }
+
+        /* Form Card */
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 24px;
+            padding: 2.5rem 3rem;
+            width: 100%;
+            max-width: 380px;
+            opacity: 0;
+            animation: fadeUp 1s ease-out 0.8s forwards;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group:last-of-type {
+            margin-bottom: 2rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            opacity: 0.7;
+            margin-bottom: 0.75rem;
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+
+        .select-wrapper::after {
+            content: '▾';
+            position: absolute;
+            right: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            font-size: 0.75rem;
+            opacity: 0.6;
+        }
+
+        select {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 400;
+            color: var(--color-cream);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            appearance: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        select:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--color-rose);
+            box-shadow: 0 0 0 3px rgba(232, 180, 184, 0.2);
+        }
+
+        select option {
+            background: var(--color-deep);
+            color: var(--color-cream);
+        }
+
+        /* CTA Button */
+        .cta-button {
+            width: 100%;
+            padding: 1.125rem 2rem;
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            color: var(--color-deep);
+            background: linear-gradient(135deg, var(--color-cream) 0%, var(--color-blush) 100%);
+            border: none;
+            border-radius: 100px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #fff 0%, var(--color-cream) 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(232, 180, 184, 0.4);
+        }
+
+        .cta-button:hover::before {
+            opacity: 1;
+        }
+
+        .cta-button span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-button .arrow {
+            display: inline-block;
+            margin-left: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .cta-button:hover .arrow {
+            transform: translateX(4px);
+        }
+
+        /* Footer note */
+        .footer-note {
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            opacity: 0.5;
+            opacity: 0;
+            animation: fadeUp 1s ease-out 1s forwards;
+        }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 480px) {
+            .hero {
+                padding: 1.5rem;
+            }
+
+            .logo {
+                margin-bottom: 3rem;
+            }
+
+            .card {
+                padding: 2rem 1.5rem;
+            }
+
+            .headline {
+                margin-bottom: 1rem;
+            }
+
+            .subheadline {
+                margin-bottom: 2.5rem;
+            }
+        }
+
+        /* Subtle ambient animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 0.9; }
+        }
+
+        .video-overlay::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center, transparent 0%, rgba(44, 24, 16, 0.3) 100%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Video Background -->
+    <div class="video-container">
+        <video autoplay muted loop playsinline>
+            <source src="https://videos.pexels.com/video-files/3990251/3990251-uhd_2560_1440_25fps.mp4" type="video/mp4">
+        </video>
+        <div class="video-overlay"></div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="hero">
+        <div class="logo">
+            <span class="heart">♥</span> DateNight
+        </div>
+
+        <h1 class="headline">Every week, just for you two.</h1>
+        
+        <p class="subheadline">
+            Plan your perfect evening in 30 seconds.<br>
+            We'll remind you both when it's time.
+        </p>
+
+        <div class="card">
+            <div class="form-group">
+                <label for="day">Pick Your Night</label>
+                <div class="select-wrapper">
+                    <select id="day" name="day">
+                        <option value="monday">Monday</option>
+                        <option value="tuesday">Tuesday</option>
+                        <option value="wednesday">Wednesday</option>
+                        <option value="thursday" selected>Thursday</option>
+                        <option value="friday">Friday</option>
+                        <option value="saturday">Saturday</option>
+                        <option value="sunday">Sunday</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="time">Time</label>
+                <div class="select-wrapper">
+                    <select id="time" name="time">
+                        <option value="17:00">5:00 PM</option>
+                        <option value="17:30">5:30 PM</option>
+                        <option value="18:00">6:00 PM</option>
+                        <option value="18:30">6:30 PM</option>
+                        <option value="19:00" selected>7:00 PM</option>
+                        <option value="19:30">7:30 PM</option>
+                        <option value="20:00">8:00 PM</option>
+                        <option value="20:30">8:30 PM</option>
+                        <option value="21:00">9:00 PM</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="cta-button" type="button" onclick="addToCalendar()">
+                <span>Add to Calendar <span class="arrow">→</span></span>
+            </button>
+        </div>
+
+        <p class="footer-note">Works with Apple Calendar • Google • Outlook</p>
+    </main>
+
+    <script>
+        function addToCalendar() {
+            const day = document.getElementById('day').value;
+            const time = document.getElementById('time').value;
+            
+            // Map day names to next occurrence
+            const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            const targetDay = days.indexOf(day);
+            const today = new Date();
+            const currentDay = today.getDay();
+            
+            let daysUntil = targetDay - currentDay;
+            if (daysUntil <= 0) daysUntil += 7;
+            
+            const eventDate = new Date(today);
+            eventDate.setDate(today.getDate() + daysUntil);
+            
+            const [hours, minutes] = time.split(':');
+            eventDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+            
+            const endDate = new Date(eventDate);
+            endDate.setHours(endDate.getHours() + 2);
+            
+            // Format for ICS
+            const formatDate = (date) => {
+                return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+            };
+            
+            const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//DateNight//EN
+BEGIN:VEVENT
+DTSTART:${formatDate(eventDate)}
+DTEND:${formatDate(endDate)}
+RRULE:FREQ=WEEKLY
+SUMMARY:Date Night ♥
+DESCRIPTION:Your weekly date night. Time to connect and enjoy each other's company.
+END:VEVENT
+END:VCALENDAR`;
+            
+            const blob = new Blob([icsContent], { type: 'text/calendar' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'date-night.ics';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
+
