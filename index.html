@@ -403,12 +403,12 @@
                 </div>
             </div>
 
-            <button class="cta-button" type="button" onclick="addToCalendar()">
+            <button class="cta-button" type="button" onclick="addToGoogleCalendar()">
                 <span>Make It a Ritual <span class="arrow">→</span></span>
             </button>
         </div>
 
-        <p class="footer-note">Works with Apple Calendar • Google • Outlook</p>
+        <p class="footer-note">Opens in Google Calendar</p>
     </main>
 
     <script>
@@ -467,23 +467,7 @@
             video.addEventListener('ended', playNextVideo);
         });
 
-        // Rotating date ideas - cycles through these for 12 weeks
-        const dateIdeas = [
-            "Cook a New Recipe Together",
-            "Stargazing & Wine",
-            "Movie Marathon Night",
-            "At-Home Spa Evening",
-            "Game Night for Two",
-            "Picnic in the Living Room",
-            "Dance Party at Home",
-            "Breakfast for Dinner",
-            "Paint & Sip Night",
-            "Build a Blanket Fort",
-            "Fondue Night",
-            "Recreate Your First Date"
-        ];
-
-        function addToCalendar() {
+        function addToGoogleCalendar() {
             const day = document.getElementById('day').value;
             const time = document.getElementById('time').value;
             
@@ -496,54 +480,51 @@
             let daysUntil = targetDay - currentDay;
             if (daysUntil <= 0) daysUntil += 7;
             
-            // Format for ICS (local time, no timezone conversion)
-            const formatDate = (date) => {
+            const eventDate = new Date(today);
+            eventDate.setDate(today.getDate() + daysUntil);
+            
+            const [hours, minutes] = time.split(':');
+            eventDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+            
+            const endDate = new Date(eventDate);
+            endDate.setHours(endDate.getHours() + 2);
+            
+            // Format for Google Calendar URL (YYYYMMDDTHHMMSS)
+            const formatGCal = (date) => {
                 const year = date.getFullYear();
                 const month = String(date.getMonth() + 1).padStart(2, '0');
                 const dayNum = String(date.getDate()).padStart(2, '0');
-                const hours = String(date.getHours()).padStart(2, '0');
+                const hrs = String(date.getHours()).padStart(2, '0');
                 const mins = String(date.getMinutes()).padStart(2, '0');
-                return `${year}${month}${dayNum}T${hours}${mins}00`;
+                return `${year}${month}${dayNum}T${hrs}${mins}00`;
             };
             
-            // Generate 12 weeks of events
-            let events = '';
-            for (let week = 0; week < 12; week++) {
-                const eventDate = new Date(today);
-                eventDate.setDate(today.getDate() + daysUntil + (week * 7));
-                
-                const [hours, minutes] = time.split(':');
-                eventDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-                
-                const endDate = new Date(eventDate);
-                endDate.setHours(endDate.getHours() + 2);
-                
-                const dateIdea = dateIdeas[week % dateIdeas.length];
-                
-                events += `BEGIN:VEVENT
-UID:datenight-week${week + 1}-${Date.now()}@datenight.app
-DTSTART:${formatDate(eventDate)}
-DTEND:${formatDate(endDate)}
-SUMMARY:${dateIdea} ♥
-DESCRIPTION:Week ${week + 1} of your date night ritual. Tonight's idea: ${dateIdea}
-END:VEVENT
-`;
-            }
+            const dateIdeas = [
+                "Week 1: Cook a New Recipe Together",
+                "Week 2: Stargazing & Wine",
+                "Week 3: Movie Marathon Night",
+                "Week 4: At-Home Spa Evening",
+                "Week 5: Game Night for Two",
+                "Week 6: Picnic in the Living Room",
+                "Week 7: Dance Party at Home",
+                "Week 8: Breakfast for Dinner",
+                "Week 9: Paint & Sip Night",
+                "Week 10: Build a Blanket Fort",
+                "Week 11: Fondue Night",
+                "Week 12: Recreate Your First Date"
+            ];
             
-            const icsContent = `BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//DateNight//EN
-CALSCALE:GREGORIAN
-METHOD:PUBLISH
-${events}END:VCALENDAR`;
+            const description = `Your 12-week date night ritual ♥\n\n${dateIdeas.join('\n')}`;
             
-            const blob = new Blob([icsContent], { type: 'text/calendar' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'date-night-12-weeks.ics';
-            a.click();
-            URL.revokeObjectURL(url);
+            const params = new URLSearchParams({
+                action: 'TEMPLATE',
+                text: 'Date Night ♥',
+                dates: `${formatGCal(eventDate)}/${formatGCal(endDate)}`,
+                details: description,
+                recur: 'RRULE:FREQ=WEEKLY;COUNT=12'
+            });
+            
+            window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, '_blank');
         }
     </script>
 </body>
