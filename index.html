@@ -47,12 +47,45 @@
         }
 
         .video-container video {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
+            z-index: 1;
+            opacity: 1;
+            transition: opacity 0.8s ease-in-out;
+        }
+
+        /* Fallback: Animated gradient when no video loads */
+        .video-fallback {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: linear-gradient(
+                135deg,
+                #2C1810 0%,
+                #4A1E1E 25%,
+                #722F37 50%,
+                #4A1E1E 75%,
+                #2C1810 100%
+            );
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         .video-overlay {
+            z-index: 2;
             position: absolute;
             top: 0;
             left: 0;
@@ -314,9 +347,14 @@
 <body>
     <!-- Video Background -->
     <div class="video-container">
-        <video autoplay muted loop playsinline>
-            <source src="https://videos.pexels.com/video-files/3990251/3990251-uhd_2560_1440_25fps.mp4" type="video/mp4">
+        <!-- Animated gradient fallback (always visible, video overlays it when loaded) -->
+        <div class="video-fallback"></div>
+        
+        <!-- Random romantic videos from Mixkit -->
+        <video id="bg-video" autoplay muted playsinline>
+            <!-- Source set by JavaScript, switches on each video end -->
         </video>
+        
         <div class="video-overlay"></div>
     </div>
 
@@ -329,8 +367,7 @@
         <h1 class="headline">Every week, just for you two.</h1>
         
         <p class="subheadline">
-            Plan your perfect evening in 30 seconds.<br>
-            We'll remind you both when it's time.
+            Plan your perfect evening in 30 seconds.
         </p>
 
         <div class="card">
@@ -367,7 +404,7 @@
             </div>
 
             <button class="cta-button" type="button" onclick="addToCalendar()">
-                <span>Add to Calendar <span class="arrow">→</span></span>
+                <span>Make It a Ritual <span class="arrow">→</span></span>
             </button>
         </div>
 
@@ -375,6 +412,77 @@
     </main>
 
     <script>
+        // Romantic background videos (local files from Mixkit, free license)
+        const videos = [
+            'videos/candlelight-dinner.mp4',   // Intimate restaurant scene
+            'videos/city-lights.mp4',          // Couple enjoying night skyline
+            'videos/walking-together.mp4',     // Romantic stroll
+            'videos/campfire-proposal.mp4'     // Cozy outdoor moment
+        ];
+
+        let currentVideoIndex = -1;
+
+        // Pick a different random video (never the same one twice in a row)
+        function getNextVideoIndex() {
+            let nextIndex;
+            do {
+                nextIndex = Math.floor(Math.random() * videos.length);
+            } while (nextIndex === currentVideoIndex && videos.length > 1);
+            return nextIndex;
+        }
+
+        // Smoothly transition to next video
+        function playNextVideo() {
+            const video = document.getElementById('bg-video');
+            
+            // Fade out current video
+            video.style.transition = 'opacity 0.8s ease-out';
+            video.style.opacity = '0';
+            
+            setTimeout(() => {
+                // Switch to new video
+                currentVideoIndex = getNextVideoIndex();
+                video.src = videos[currentVideoIndex];
+                video.load();
+                video.play().catch(() => {
+                    // Autoplay blocked - gradient fallback shows
+                });
+                
+                // Fade in new video
+                video.style.opacity = '1';
+            }, 800);
+        }
+
+        // Initialize on DOM ready
+        document.addEventListener('DOMContentLoaded', () => {
+            const video = document.getElementById('bg-video');
+            
+            // Set initial video
+            currentVideoIndex = getNextVideoIndex();
+            video.src = videos[currentVideoIndex];
+            video.load();
+            video.play().catch(() => {});
+            
+            // When video ends, play next one
+            video.addEventListener('ended', playNextVideo);
+        });
+
+        // Rotating date ideas - cycles through these for 12 weeks
+        const dateIdeas = [
+            "Cook a New Recipe Together",
+            "Stargazing & Wine",
+            "Movie Marathon Night",
+            "At-Home Spa Evening",
+            "Game Night for Two",
+            "Picnic in the Living Room",
+            "Dance Party at Home",
+            "Breakfast for Dinner",
+            "Paint & Sip Night",
+            "Build a Blanket Fort",
+            "Fondue Night",
+            "Recreate Your First Date"
+        ];
+
         function addToCalendar() {
             const day = document.getElementById('day').value;
             const time = document.getElementById('time').value;
@@ -388,37 +496,52 @@
             let daysUntil = targetDay - currentDay;
             if (daysUntil <= 0) daysUntil += 7;
             
-            const eventDate = new Date(today);
-            eventDate.setDate(today.getDate() + daysUntil);
-            
-            const [hours, minutes] = time.split(':');
-            eventDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-            
-            const endDate = new Date(eventDate);
-            endDate.setHours(endDate.getHours() + 2);
-            
-            // Format for ICS
+            // Format for ICS (local time, no timezone conversion)
             const formatDate = (date) => {
-                return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const dayNum = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const mins = String(date.getMinutes()).padStart(2, '0');
+                return `${year}${month}${dayNum}T${hours}${mins}00`;
             };
+            
+            // Generate 12 weeks of events
+            let events = '';
+            for (let week = 0; week < 12; week++) {
+                const eventDate = new Date(today);
+                eventDate.setDate(today.getDate() + daysUntil + (week * 7));
+                
+                const [hours, minutes] = time.split(':');
+                eventDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                
+                const endDate = new Date(eventDate);
+                endDate.setHours(endDate.getHours() + 2);
+                
+                const dateIdea = dateIdeas[week % dateIdeas.length];
+                
+                events += `BEGIN:VEVENT
+UID:datenight-week${week + 1}-${Date.now()}@datenight.app
+DTSTART:${formatDate(eventDate)}
+DTEND:${formatDate(endDate)}
+SUMMARY:${dateIdea} ♥
+DESCRIPTION:Week ${week + 1} of your date night ritual. Tonight's idea: ${dateIdea}
+END:VEVENT
+`;
+            }
             
             const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//DateNight//EN
-BEGIN:VEVENT
-DTSTART:${formatDate(eventDate)}
-DTEND:${formatDate(endDate)}
-RRULE:FREQ=WEEKLY
-SUMMARY:Date Night ♥
-DESCRIPTION:Your weekly date night. Time to connect and enjoy each other's company.
-END:VEVENT
-END:VCALENDAR`;
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+${events}END:VCALENDAR`;
             
             const blob = new Blob([icsContent], { type: 'text/calendar' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'date-night.ics';
+            a.download = 'date-night-12-weeks.ics';
             a.click();
             URL.revokeObjectURL(url);
         }
